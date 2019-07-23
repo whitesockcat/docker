@@ -1,6 +1,4 @@
-# ==================================================================
-# cu80-py36-tf14-t2t129-torch041-utf8
-# maintrainer: Tianyu He (tim-he@qq.com)
+
 # ------------------------------------------------------------------
 # python        3.6    (apt)
 # tensorflow    1.4.0  (pip)
@@ -112,6 +110,7 @@ RUN sed -i 's/archive.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list &&
         sacrebleu==1.2.17 \
         pyyaml==3.12 \
         pycocotools \
+        libtiff \
         && \
 # ==================================================================
 # tensorflow 1.4.0
@@ -120,7 +119,7 @@ RUN sed -i 's/archive.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list &&
     $PIP_INSTALL \
         tensorflow-gpu==1.4.0 \
         tensor2tensor==1.2.9 \
-        tensorboardX==1.4 \
+        tensorboardX==1.6 \
         && \
 # ==================================================================
 # pytorch 0.4.1
@@ -134,6 +133,17 @@ RUN sed -i 's/archive.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list &&
 # ------------------------------------------------------------------
 WORKDIR	/opt
 RUN	git clone https://github.com/NVIDIA/nccl.git && cd nccl && make -j install && cd .. && rm -rf nccl
+
+# ==================================================================
+# username password 
+# ------------------------------------------------------------------
+RUN mkdir /var/run/sshd  &&\
+    echo 'root:iecas123' |chpasswd  &&\
+    sed -ri 's/^PermitRootLogin\s+.*/PermitRootLogin yes/' /etc/ssh/sshd_config  &&\
+    sed -ri 's/UserPAM yes/#UsePAM yes/g' /etc/ssh/sshd_config  &&\
+    mkdir -p /backup &&\
+    env > /backup/env.txt
+
 WORKDIR /
 
 # ==================================================================
@@ -144,3 +154,6 @@ RUN ldconfig && \
     apt-get autoremove && \
     rm -rf /var/lib/apt/lists/* /tmp/* ~/*
 EXPOSE 6006
+EXPOSE 22
+EXPOSE 8888
+CMD ["/usr/sbin/sshd", "-D"]
